@@ -9,7 +9,7 @@ dir_of_interest = os.path.join(FILE_DIR, "Resources")
 encode_os_path = os.path.join(dir_of_interest, 'encode_os.sav')
 scaler_path = os.path.join(dir_of_interest, 'scaler.sav')
 y_scaler_path = os.path.join(dir_of_interest, 'y_scaler.sav')
-model_path = os.path.join(dir_of_interest, 'model.sav')
+model_path = os.path.join(dir_of_interest, 'finalized_model.sav')
 HD_type_endict = {'HDD': 1,
                   'EMMC': 1.5,
                   'SSD': 2,
@@ -41,10 +41,11 @@ def data_transform(data):
     df_sample['OS'] = encode_os.transform(df_sample['OS'])
     df_sample['RAM_type'] = df_sample.RAM_type.map(RAM_type_endict)
     df_sample['HD_type'] = df_sample.HD_type.map(HD_type_endict)
-    for feature in ['HD_size', 'RAM_size', 'Display']:
-        df_sample[feature] = np.log(df_sample[feature])
     scaler = pickle.load(open(scaler_path, 'rb'))
-    df_sample[df_sample.columns] = scaler.transform(df_sample[df_sample.columns].values)
+    scaled_features = df_sample.columns
+    print(scaled_features)
+    df_sample[scaled_features] = scaler.transform(df_sample[scaled_features].values)
+    print(df_sample)
     return df_sample
 
 
@@ -52,5 +53,6 @@ def predict(df_sample):
     model = pickle.load(open(model_path, 'rb'))
     y_scaler = pickle.load(open(y_scaler_path, 'rb'))
     result = model.predict(df_sample)
-    result = y_scaler.inverse_transform(result.reshape(-1, 1))
+    result = y_scaler.inverse_transform(result)
+    print(result)
     return round(math.exp(result), 2)
